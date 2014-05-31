@@ -1,12 +1,18 @@
-Talent course project #1
-========================
+Project 1
+=========
+
+This is the first project for the [TALENT course][1]:
+[nuclear theory for astrophysics (2014)][2].
+
+[1]: http://nucleartalent.org
+[2]: https://groups.nscl.msu.edu/jina/talent/wiki/Course_7
 
 Roles
 -----
 
-- Analysis:     Alexander D.
-- Code:         Fei Y.
-- Parameter:    Heiko M.
+- **Analysis:**     Alexander D.
+- **Code:**         Fei Y.
+- **Parameter:**    Heiko M.
 
 Topic
 -----
