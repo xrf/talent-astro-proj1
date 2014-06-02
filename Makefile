@@ -12,8 +12,8 @@ FC=gfortran
 MPIFC=mpif90
 
 # compiler flags
-INCLUDE_DIRS=-I/usr/include #-I/usr/local/include -I/opt/local/include
-LIB_DIRS=-L/usr/lib #-L/usr/local/lib -L/opt/local/lib
+INCLUDE_DIRS=-I/opt/local/include
+LIB_DIRS=-L/opt/local/lib
 FFLAGS=$(INCLUDE_DIRS) -O3 -Wall -freal-4-real-8 -march=native -Wa,-q
 LNETCDF=$(LIB_DIRS) -lnetcdf -lnetcdff
 
