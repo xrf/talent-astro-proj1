@@ -42,16 +42,20 @@ vh1-serial: $(VH1_DIR)/vh1-serial
 
 vh1-starter: $(VH1_DIR)/vh1-starter
 
-run: $(VH1_DIR)/vh1-serial
-	cd $(VH1_DIR) && ./vh1-serial
+run: $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat
+	@cd $(VH1_DIR) && ./vh1-serial
 
-run-mpi: $(VH1_DIR)/vh1-mpi
-	cd $(VH1_DIR) && mpirun -n $(NP) ./vh1-mpi
+run-mpi: $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat
+	@cd $(VH1_DIR) && mpirun -n $(NP) ./vh1-mpi
 
-run-starter: $(VH1_DIR)/vh1-starter
-	cd $(VH1_DIR) && ./vh1-starter
+run-starter: $(VH1_DIR)/vh1-starter $(VH1_DIR)/indat
+	@cd $(VH1_DIR) && ./vh1-starter
 
-$(VH1_DIR)/vh1-serial: $(VH1) $(VH1_DIR)/src/Serial/vhone.f90
+$(VH1_DIR)/vh1-serial: \
+    $(VH1) \
+    $(VH1_DIR)/src/Serial/init.f90 \
+    $(VH1_DIR)/src/Serial/vhone.f90 \
+    $(VH1_DIR)/src/PPMLR/forces.f90
 	@cd $(VH1_DIR)/src/Serial && \
 	$(MAKE) F90="$(FC)" \
 	        FFLAGS="$(FFLAGS) -c" \
@@ -59,7 +63,9 @@ $(VH1_DIR)/vh1-serial: $(VH1) $(VH1_DIR)/src/Serial/vhone.f90
 	        LDRFLAGS="$(LDFLAGS)" \
 	        LIBS="$(LNETCDF)"
 
-$(VH1_DIR)/vh1-mpi: $(VH1)
+$(VH1_DIR)/vh1-mpi: \
+    $(VH1) \
+    $(VH1_DIR)/src/PPMLR/forces.f90
 	@cd $(VH1_DIR)/src/Parallel && \
 	$(MAKE) F90="$(MPIFC)" \
 	        FFLAGS="$(FFLAGS) -c" \
@@ -67,15 +73,26 @@ $(VH1_DIR)/vh1-mpi: $(VH1)
 	        LDRFLAGS="$(LDFLAGS)" \
 	        LIBS="$(LNETCDF)"
 
-$(VH1_DIR)/vh1-starter: $(VH1)
+$(VH1_DIR)/vh1-starter: \
+    $(VH1) \
+    $(VH1_DIR)/src/PPMLR/forces.f90
 	@cd $(VH1_DIR)/src/Starter && \
 	$(MAKE) F90="$(FC)" \
 	        FFLAGS="$(FFLAGS) -c" \
 	        LDR="$(FC)" \
 	        LDRFLAGS="$(LDFLAGS)"
 
+$(VH1_DIR)/src/Serial/init.f90: init.f90 $(VH1)
+	@cp init.f90 $@
+
 $(VH1_DIR)/src/Serial/vhone.f90: vhone.f90 $(VH1)
 	@cp vhone.f90 $@
+
+$(VH1_DIR)/src/PPMLR/forces.f90: forces.f90 $(VH1)
+	@cp forces.f90 $@
+
+$(VH1_DIR)/indat: indat $(VH1)
+	@cp indat $@
 
 $(VH1):
 	@mkdir -p $(VH1_PAR)
