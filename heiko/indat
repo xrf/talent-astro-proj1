@@ -1,0 +1,10 @@
+&hinput
+ rstrt   = 'no'
+ prefix  = 'gascloud'
+ ncycend = 500000
+ ndump   = 5000000
+ nprin   = 1000
+ nmovie  = 1000000
+ endtime = 9.9e+19
+ tprin   = 9.9e+19
+ tmovie  = 9.9e+19 /
