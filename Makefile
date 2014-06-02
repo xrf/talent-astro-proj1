@@ -31,7 +31,7 @@ VH1=$(VH1_PAR)/.VH1-cookie
 
 # ----------------------------------------------------------------------------
 
-all: vh1-mpi vh1-serial vh1-starter
+all: vh1-serial
 
 clean:
 	@rm -fr dist
