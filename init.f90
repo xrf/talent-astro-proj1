@@ -1,30 +1,32 @@
 subroutine init
   use global
   use zone
-
   implicit none
 
   integer :: i, j, k
-  real :: ridt, xvel, yvel, zvel, width, widthz, widthy
-  real :: xmin, xmax, ymin, ymax, zmin, zmax
-  real :: dleft, pleft, dright, pright, plane
+  real    :: ridt, xvel, yvel, zvel, width, widthz, widthy
+  real    :: xmin, xmax, ymin, ymax, zmin, zmax
+  real    :: r
+  real :: sun_radius=.2
+  real :: sun_origin_x=.5
+  real :: sun_origin_y=.5
 
-  !--------------------------------------------------------------------------------
+  ! --------------------------------------------------------------------------
   ! Set up geometry and boundary conditions of grid
   !
-  ! Boundary condition flags : nleft, nright
-  !   = 0  :  reflecting boundary condition
-  !   = 1  :  inflow/outflow boundary condition (zero gradients)
-  !   = 2  :  fixed inflow boundary condition (values set by dinflo, pinflo, etc.)
-  !   = 3  :  periodic (nmax+1 = nmin; nmin-1 = nmax)
+  ! Boundary condition flags: nleft, nright
+  !   0: reflecting boundary condition
+  !   1: inflow/outflow boundary condition (zero gradients)
+  !   2: fixed inflow boundary condition (values set by dinflo, pinflo, etc.)
+  !   3: periodic (nmax + 1 = nmin; nmin - 1 = nmax)
   !
-  ! Geometry flag : ngeom                       |  Cartesian:
-  !   = 0  :  planar                            |    gx = 0, gy = 0, gz = 0   (x,y,z)
-  !   = 1  :  cylindrical radial                |  Cylindrical:
-  !   = 2  :  spherical   radial           3D= {     gx = 1, gy = 3, gz = 0   (s,phi,z)
-  !   = 3  :  cylindrical angle                 |
-  !   = 4  :  spherical polar angle (theta)     |  Spherical:
-  !   = 5  :  spherical azimu angle (phi)       |    gx = 2, gy = 4, gz = 5   (r,theta,phi)
+  ! Geometry flag : ngeom        |  Cartesian:
+  !   0: planar                  |    gx = 0, gy = 0, gz = 0   (x, y, z)
+  !   1: cylindrical radial      |  Cylindrical:
+  !   2: spherical   radial  3D= {     gx = 1, gy = 3, gz = 0   (s, phi, z)
+  !   3: cylindrical angle       |
+  !   4: polar angle (theta)     |  Spherical:
+  !   5: azimuth (phi)           |    gx = 2, gy = 4, gz = 5   (r, theta, phi)
 
   ! Define the computational grid...
 
@@ -32,12 +34,12 @@ subroutine init
   ngeomy = 0
   ngeomz = 0
 
-  nleftx = 0
-  nrightx= 0
-  nlefty = 0
-  nrighty= 0
-  nleftz = 0
-  nrightz= 0
+  nleftx = 1
+  nrightx= 1
+  nlefty = 1
+  nrighty= 1
+  nleftz = 1
+  nrightz= 1
 
   xmin   = 0.0
   xmax   = 1.0
@@ -46,7 +48,7 @@ subroutine init
   zmin   = 0.0
   zmax   = 1.0
 
-  ! If any dimension is angular, multiply coordinates by pi...
+  ! if any dimension is angular, multiply coordinates by pi
   if(ngeomy >= 3) then
      ymin = ymin * pi
      ymax = ymax * pi
@@ -56,18 +58,14 @@ subroutine init
      zmax = zmax * pi
   endif
 
-  !======================================================================
-  ! Set up parameters from the problem (Sod shock tube)
+  ! --------------------------------------------------------------------------
+  ! set up parameters from the problem
 
-  pright = 0.1
-  dright = 0.125
-  pleft  = 1.0
-  dleft  = 1.0
   gam    = 5. / 3.
 
   gamm = gam - 1.0
 
-  !=======================================================================
+  ! --------------------------------------------------------------------------
   ! set time and cycle counters
 
   time   = 0.0
@@ -88,35 +86,35 @@ subroutine init
   if (ndim <= 2) zzc(1) = 0.0
   if (ndim == 1) zyc(1) = 0.0
 
-  !======================================================================
+  ! --------------------------------------------------------------------------
   ! Log parameters of problem in history file
 
-  write (8,"('Oblique Sod shock tube in ',i1,' dimensions.')") ndim
-  if (ndim==1) then
-     write (8,"('Grid dimensions: ',i4)") imax
-  else if (ndim==2) then
-     write (8,"('Grid dimensions: ',i4,' x ',i4)") imax, jmax
+  write (8, "('Oblique Sod shock tube in ',i1,' dimensions.')") ndim
+  if (ndim == 1) then
+     write (8, "('Grid dimensions: ',i4)") imax
+  else if (ndim == 2) then
+     write (8, "('Grid dimensions: ',i4,' x ',i4)") imax, jmax
   else
-     write (8,"('Grid dimensions: ',i4,' x ',i4,' x ',i4)") imax, jmax, kmax
+     write (8, "('Grid dimensions: ',i4,' x ',i4,' x ',i4)") imax, jmax, kmax
   endif
-  write (8,*)
-  write (8,"('Ratio of specific heats = ',f5.3)") gam
-  write (8,"('Pressure ratio is ',f5.3)") pright
-  write (8,"('Density ratio is ',f5.3)") dright
-  write (8,*)
+  write (8, *)
+  write (8, "('Ratio of specific heats = ',f5.3)") gam
+  write (8, *)
 
   ! initialize grid:
 
   do k = 1, kmax
      do j = 1, jmax
         do i = 1, imax
-           plane = zxc(i)+zyc(j)+zzc(k)
-           if(plane >= 0.5) then
-              zro(i,j,k) = dright
-              zpr(i,j,k) = pright
+           r = (zxc(i) - sun_origin_x) ** 2 &
+             + (zyc(j) - sun_origin_y) ** 2
+!            + zzc(k) ** 2
+           if (r >= sun_radius ** 2) then ! outside
+              zro(i,j,k) = 1
+              zpr(i,j,k) = 1
            else
-              zro(i,j,k) = dleft
-              zpr(i,j,k) = pleft
+              zro(i,j,k) = 10
+              zpr(i,j,k) = 1
            endif
            zux(i,j,k) = 0.
            zuy(i,j,k) = 0.
@@ -126,7 +124,11 @@ subroutine init
      enddo
   enddo
 
-  !########################################################################
+  do i = 1, imax
+     zpr(i, 1, 1) = 1e7
+  enddo
+
+  ! --------------------------------------------------------------------------
   ! Compute Courant-limited timestep
 
   ridt = 0.
@@ -173,30 +175,30 @@ subroutine init
   return
 end subroutine init
 
-!#########################################################################
+! ----------------------------------------------------------------------------
 
-subroutine grid( nzones, xmin, xmax, xa, xc, dx )
-
+subroutine grid(nzones, xmin, xmax, xa, xc, dx)
+  !
   ! Create grid to cover physical size from xmin to xmax
   ! number of physical grid zones is nzones
   !
   ! xa(1) is left boundary location - at xmin
   ! xa(nzones+1) is right boundary location - at xmax
-  !----------------------------------------------------------------------
-  IMPLICIT NONE
+  ! --------------------------------------------------------------------------
+  implicit none
 
   ! LOCALS
   integer :: nzones, n
   real, dimension(nzones) :: xa, dx, xc
   real :: dxfac, xmin, xmax
 
-  !=======================================================================
+  ! --------------------------------------------------------------------------
 
   dxfac = (xmax - xmin) / float(nzones)
   do n = 1, nzones
-     xa(n) = xmin + (n-1)*dxfac
+     xa(n) = xmin + (n-1) * dxfac
      dx(n) = dxfac
-     xc(n) = xa(n) + 0.5*dx(n)
+     xc(n) = xa(n) + 0.5 * dx(n)
   enddo
 
   return

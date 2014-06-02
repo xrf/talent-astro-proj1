@@ -12,7 +12,7 @@ FC=gfortran
 MPIFC=mpif90
 
 # compiler flags
-FFLAGS=-O3 -march=native -I/usr/include
+FFLAGS=-O3 -march=native -I/usr/include -Wall
 LNETCDF=-lnetcdf -lnetcdff
 
 # number of processors
@@ -43,18 +43,22 @@ vh1-serial: $(VH1_DIR)/vh1-serial
 vh1-starter: $(VH1_DIR)/vh1-starter
 
 run: $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat
+	@rm -fr $(VH1_DIR)/output/*
 	@cd $(VH1_DIR) && ./vh1-serial
 
 run-mpi: $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat
+	@rm -fr $(VH1_DIR)/output/*
 	@cd $(VH1_DIR) && mpirun -n $(NP) ./vh1-mpi
 
 run-starter: $(VH1_DIR)/vh1-starter $(VH1_DIR)/indat
+	@rm -fr $(VH1_DIR)/output/*
 	@cd $(VH1_DIR) && ./vh1-starter
 
 $(VH1_DIR)/vh1-serial: \
     $(VH1) \
     $(VH1_DIR)/src/Serial/init.f90 \
     $(VH1_DIR)/src/Serial/vhone.f90 \
+    $(VH1_DIR)/src/Serial/zonemod.f90 \
     $(VH1_DIR)/src/PPMLR/forces.f90
 	@cd $(VH1_DIR)/src/Serial && \
 	$(MAKE) F90="$(FC)" \
@@ -87,6 +91,9 @@ $(VH1_DIR)/src/Serial/init.f90: init.f90 $(VH1)
 
 $(VH1_DIR)/src/Serial/vhone.f90: vhone.f90 $(VH1)
 	@cp vhone.f90 $@
+
+$(VH1_DIR)/src/Serial/zonemod.f90: zonemod.f90 $(VH1)
+	@cp zonemod.f90 $@
 
 $(VH1_DIR)/src/PPMLR/forces.f90: forces.f90 $(VH1)
 	@cp forces.f90 $@
