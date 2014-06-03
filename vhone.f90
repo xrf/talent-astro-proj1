@@ -13,6 +13,8 @@ program VHone
   real    :: endtime, tprin, tmovie, olddt
   real    :: start_time, end_time, run_time, zones
 
+  logical :: shock_init = .false.
+
   namelist /hinput/ rstrt, prefix, ncycend, ndump, nprin, nmovie, endtime, &
                     tprin, tmovie
 
@@ -112,6 +114,8 @@ program VHone
 
      ! check constraints on the timestep
      call dtcon
+
+     call source(shock_init)
 
      ! output movie images/datasets/dumpfiles based on simulation time or
      ! cycle number
