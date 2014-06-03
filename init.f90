@@ -37,10 +37,10 @@ subroutine init
   nleftz = 1
   nrightz= 1
 
-  xmin   = 0.0
-  xmax   = 1.0
-  ymin   = 0.0
-  ymax   = 1.0
+  xmin   = -box_semisize
+  xmax   = box_semisize
+  ymin   = -box_semisize
+  ymax   = box_semisize
   zmin   = 0.0
   zmax   = 1.0
 
@@ -57,9 +57,10 @@ subroutine init
   ! --------------------------------------------------------------------------
   ! set up parameters from the problem
 
-  gam    = 5. / 3.
-
+  gam  = 5. / 3.
   gamm = gam - 1.0
+
+  shock_pressure = shock_energy ! temporary !
 
   ! --------------------------------------------------------------------------
   ! set time and cycle counters
@@ -176,17 +177,17 @@ subroutine source(shock_init)
                   + (zyc(j) - sun_origin_y) ** 2 &
                   + (zzc(k) - sun_origin_z) ** 2)
            if (r < injection_radius) then
-              zro(i,j,k) = solar_density
-              zpr(i,j,k) = solar_pressure
-              ! zux(i,j,k) = solar_speed * (zxc(i) - sun_origin_x) / r
-              ! zuy(i,j,k) = solar_speed * (zyc(j) - sun_origin_y) / r
-              ! zuz(i,j,k) = solar_speed * (zzc(k) - sun_origin_z) / r
+              zro(i,j,k) = wind_density
+              zpr(i,j,k) = wind_pressure
+              ! zux(i,j,k) = wind_speed * (zxc(i) - sun_origin_x) / r
+              ! zuy(i,j,k) = wind_speed * (zyc(j) - sun_origin_y) / r
+              ! zuz(i,j,k) = wind_speed * (zzc(k) - sun_origin_z) / r
            endif
         enddo
      enddo
   enddo
 
-  !.not. shock_init .and. 
+  !.not. shock_init .and.
   if (time > shock_start_time) then
      do i = 1, imax
         do k = 1, kmax

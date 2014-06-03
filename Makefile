@@ -14,7 +14,7 @@ MPIFC=mpif90
 # compiler flags
 INCLUDE_DIRS=-I/usr/include #-I/usr/local/include -I/opt/local/include
 LIB_DIRS=-L/usr/lib #-L/usr/local/lib -L/opt/local/lib
-FFLAGS=$(INCLUDE_DIRS) -O3 -Wall -march=native -Wa,-q
+FFLAGS=$(INCLUDE_DIRS) -O3 -Wall -freal-4-real-8 -march=native -Wa,-q
 LNETCDF=$(LIB_DIRS) -lnetcdf -lnetcdff
 
 # number of processors
@@ -167,7 +167,9 @@ $(VH1_DIR)/src/Serial/prin.f90: $(VH1)
 $(VH1_DIR)/src/Serial/sweepx.f90: $(VH1)
 $(VH1_DIR)/src/Serial/sweepy.f90: $(VH1)
 $(VH1_DIR)/src/Serial/sweepz.f90: $(VH1)
-$(VH1_DIR)/src/Starter/vhone.f90: $(VH1)
+
+$(VH1_DIR)/src/PPMLR/forces.f90: forces.f90 $(VH1)
+	@cp forces.f90 $@
 
 $(VH1_DIR)/src/Serial/init.f90: init.f90 $(VH1)
 	@cp init.f90 $@
@@ -181,8 +183,8 @@ $(VH1_DIR)/src/Serial/vhone.f90: vhone.f90 $(VH1)
 $(VH1_DIR)/src/Serial/zonemod.f90: zonemod.f90 $(VH1)
 	@cp zonemod.f90 $@
 
-$(VH1_DIR)/src/PPMLR/forces.f90: forces.f90 $(VH1)
-	@cp forces.f90 $@
+$(VH1_DIR)/src/Starter/vhone.f90: starter/vhone.f90 $(VH1)
+	@cp starter/vhone.f90 $@
 
 $(VH1_DIR)/indat: indat $(VH1)
 	@cp indat $@
