@@ -6,10 +6,6 @@ subroutine init
   integer :: i, j, k
   real    :: ridt, xvel, yvel, zvel, width, widthz, widthy
   real    :: xmin, xmax, ymin, ymax, zmin, zmax
-  real    :: r
-  real :: sun_radius=.2
-  real :: sun_origin_x=.5
-  real :: sun_origin_y=.5
 
   ! --------------------------------------------------------------------------
   ! Set up geometry and boundary conditions of grid
@@ -41,10 +37,10 @@ subroutine init
   nleftz = 1
   nrightz= 1
 
-  xmin   = 0.0
-  xmax   = 1.0
-  ymin   = 0.0
-  ymax   = 1.0
+  xmin   = -box_semisize
+  xmax   = box_semisize
+  ymin   = -box_semisize
+  ymax   = box_semisize
   zmin   = 0.0
   zmax   = 1.0
 
@@ -61,9 +57,10 @@ subroutine init
   ! --------------------------------------------------------------------------
   ! set up parameters from the problem
 
-  gam    = 5. / 3.
-
+  gam  = 5. / 3.
   gamm = gam - 1.0
+
+  shock_pressure = shock_energy ! temporary !
 
   ! --------------------------------------------------------------------------
   ! set time and cycle counters
@@ -106,16 +103,8 @@ subroutine init
   do k = 1, kmax
      do j = 1, jmax
         do i = 1, imax
-           r = (zxc(i) - sun_origin_x) ** 2 &
-             + (zyc(j) - sun_origin_y) ** 2
-!            + zzc(k) ** 2
-           if (r >= sun_radius ** 2) then ! outside
-              zro(i,j,k) = 1
-              zpr(i,j,k) = 1
-           else
-              zro(i,j,k) = 10
-              zpr(i,j,k) = 1
-           endif
+           zro(i,j,k) = ambient_density
+           zpr(i,j,k) = ambient_pressure
            zux(i,j,k) = 0.
            zuy(i,j,k) = 0.
            zuz(i,j,k) = 0.
@@ -124,9 +113,7 @@ subroutine init
      enddo
   enddo
 
-  do i = 1, imax
-     zpr(i, 1, 1) = 1e7
-  enddo
+  call source(.false.)
 
   ! --------------------------------------------------------------------------
   ! Compute Courant-limited timestep
@@ -171,9 +158,48 @@ subroutine init
   endif
 
   dt = courant / ridt
-
-  return
 end subroutine init
+
+! ----------------------------------------------------------------------------
+
+subroutine source(shock_init)
+  use global
+  use zone
+  implicit none
+  integer :: i, j, k
+  real    :: r
+  logical :: shock_init
+
+  do k = 1, kmax
+     do j = 1, jmax
+        do i = 1, imax
+           r = sqrt((zxc(i) - sun_origin_x) ** 2 &
+                  + (zyc(j) - sun_origin_y) ** 2 &
+                  + (zzc(k) - sun_origin_z) ** 2)
+           if (r < injection_radius) then
+              zro(i,j,k) = wind_density
+              zpr(i,j,k) = wind_pressure
+              ! zux(i,j,k) = wind_speed * (zxc(i) - sun_origin_x) / r
+              ! zuy(i,j,k) = wind_speed * (zyc(j) - sun_origin_y) / r
+              ! zuz(i,j,k) = wind_speed * (zzc(k) - sun_origin_z) / r
+           endif
+        enddo
+     enddo
+  enddo
+
+  !.not. shock_init .and.
+  if (time > shock_start_time) then
+     do i = 1, imax
+        do k = 1, kmax
+           zpr(i, 1, k) = shock_pressure
+           zro(i, 1, k) = shock_density
+        enddo
+     enddo
+     shock_init = .true.
+  endif
+
+end subroutine source
+
 
 ! ----------------------------------------------------------------------------
 
@@ -187,7 +213,6 @@ subroutine grid(nzones, xmin, xmax, xa, xc, dx)
   ! --------------------------------------------------------------------------
   implicit none
 
-  ! LOCALS
   integer :: nzones, n
   real, dimension(nzones) :: xa, dx, xc
   real :: dxfac, xmin, xmax
@@ -196,10 +221,8 @@ subroutine grid(nzones, xmin, xmax, xa, xc, dx)
 
   dxfac = (xmax - xmin) / float(nzones)
   do n = 1, nzones
-     xa(n) = xmin + (n-1) * dxfac
+     xa(n) = xmin + (n - 1) * dxfac
      dx(n) = dxfac
-     xc(n) = xa(n) + 0.5 * dx(n)
+     xc(n) = xa(n) + .5 * dx(n)
   enddo
-
-  return
 end subroutine grid
