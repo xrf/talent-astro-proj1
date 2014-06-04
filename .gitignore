@@ -1,6 +1,7 @@
 # generic
 dist/
 doc/
+Makefile
 .\#*
 *~
 *.log
