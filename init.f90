@@ -37,12 +37,12 @@ subroutine init
   nleftz = 1
   nrightz= 1
 
-  xmin   = box_xmin
-  xmax   = box_xmax
-  ymin   = box_ymin
-  ymax   = box_ymax
-  zmin   = 0.0
-  zmax   = 1.0
+  xmin = box_xmin
+  xmax = box_xmax
+  ymin = box_ymin
+  ymax = box_ymax
+  zmin = 0.0
+  zmax = 1.0
 
   ! if any dimension is angular, multiply coordinates by pi
   if(ngeomy >= 3) then
@@ -59,8 +59,6 @@ subroutine init
 
   gam  = 5. / 3.
   gamm = gam - 1.0
-
-  shock_pressure = shock_energy ! temporary !
 
   ! --------------------------------------------------------------------------
   ! set time and cycle counters
@@ -99,7 +97,6 @@ subroutine init
   write (8, *)
 
   ! initialize grid:
-
   do k = 1, kmax
      do j = 1, jmax
         do i = 1, imax
@@ -113,7 +110,7 @@ subroutine init
      enddo
   enddo
 
-  call source(.false.)
+  call source
 
   ! --------------------------------------------------------------------------
   ! Compute Courant-limited timestep
@@ -162,13 +159,12 @@ end subroutine init
 
 ! ----------------------------------------------------------------------------
 
-subroutine source(shock_init)
+subroutine source
   use global
   use zone
   implicit none
   integer :: i, j, k
   real    :: r
-  logical :: shock_init
 
   do k = 1, kmax
      do j = 1, jmax
@@ -187,16 +183,16 @@ subroutine source(shock_init)
      enddo
   enddo
 
-  !.not. shock_init .and.
-  ! if (time > shock_start_time) then
-  !    do i = 1, imax
-  !       do k = 1, kmax
-  !          zpr(i, 1, k) = shock_pressure
-  !          zro(i, 1, k) = shock_density
-  !       enddo
-  !    enddo
-  !    shock_init = .true.
-  ! endif
+  if (time > shock_start_time) then
+     do i = 1, imax
+        do k = 1, kmax
+           zux(i, 1, k) = 0
+           zuy(i, 1, k) = shock_velocity
+           zuz(i, 1, k) = 0
+           zro(i, 1, k) = shock_density
+        enddo
+     enddo
+  endif
 
 end subroutine source
 
