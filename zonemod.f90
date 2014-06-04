@@ -1,6 +1,12 @@
 module zone
 
-  integer, parameter :: imax=100, jmax=100, kmax=1   ! memory dimensions
+  integer :: ngeomx,  ngeomy,  ngeomz       ! xyz geometry flag
+  integer :: nleftx,  nlefty,  nleftz       ! xyz lower boundary condition
+  integer :: nrightx, nrighty, nrightz      ! xyz upper boundary condition
+
+  integer, parameter :: imax = 100
+  integer, parameter :: jmax = 200
+  integer, parameter :: kmax = 1
 
   real, dimension(imax, jmax, kmax) :: zro, zpr, zux, zuy, zuz, zfl
 
@@ -8,29 +14,27 @@ module zone
   real, dimension(jmax) :: zya, zdy, zyc
   real, dimension(kmax) :: zza, zdz, zzc
 
-  integer :: ngeomx,  ngeomy,  ngeomz       ! xyz geometry flag
-  integer :: nleftx,  nlefty,  nleftz       ! xyz lower boundary condition
-  integer :: nrightx, nrighty, nrightz      ! xyz upper boundary condition
+  real, parameter :: box_xmin = -1.5e14
+  real, parameter :: box_xmax = 1.5e14
+  real, parameter :: box_ymin = -1.5e14
+  real, parameter :: box_ymax = 1.5e14
 
-  real :: box_semisize = 1.
+  real, parameter :: ambient_density = 1.67e-24
+  real, parameter :: ambient_pressure = 2.2e-12
 
-  real :: ambient_density = 1.
-  real :: ambient_pressure = 1.
+  real, parameter :: injection_radius = 7.48e9 ! .5 AU
 
-  real :: injection_radius = .05
+  real, parameter :: wind_density = 28e-24 ! ?
+  real, parameter :: wind_pressure = 8e-8
+!  real, parameter :: wind_speed = 1000.
 
-  real :: wind_density = 3.
-  real :: wind_pressure = 8e6
-  real :: wind_speed = 1000.
+  real, parameter :: shock_density = 1.67e-14 ! ?
+  real, parameter :: shock_energy = 0
+  real            :: shock_pressure
+  real, parameter :: shock_start_time = 0.0015
 
-  real :: shock_density = 1
-  real :: shock_energy = 5e7
-  real :: shock_pressure
-
-  real :: sun_origin_x = .5
-  real :: sun_origin_y = .5
-  real :: sun_origin_z = 0
-
-  real :: shock_start_time = 0.0015
+  real, parameter :: sun_origin_x = 0
+  real, parameter :: sun_origin_y = 0
+  real, parameter :: sun_origin_z = 0
 
 end module zone

@@ -37,10 +37,10 @@ subroutine init
   nleftz = 1
   nrightz= 1
 
-  xmin   = -box_semisize
-  xmax   = box_semisize
-  ymin   = -box_semisize
-  ymax   = box_semisize
+  xmin   = box_xmin
+  xmax   = box_xmax
+  ymin   = box_ymin
+  ymax   = box_ymax
   zmin   = 0.0
   zmax   = 1.0
 
@@ -188,15 +188,15 @@ subroutine source(shock_init)
   enddo
 
   !.not. shock_init .and.
-  if (time > shock_start_time) then
-     do i = 1, imax
-        do k = 1, kmax
-           zpr(i, 1, k) = shock_pressure
-           zro(i, 1, k) = shock_density
-        enddo
-     enddo
-     shock_init = .true.
-  endif
+  ! if (time > shock_start_time) then
+  !    do i = 1, imax
+  !       do k = 1, kmax
+  !          zpr(i, 1, k) = shock_pressure
+  !          zro(i, 1, k) = shock_density
+  !       enddo
+  !    enddo
+  !    shock_init = .true.
+  ! endif
 
 end subroutine source
 
