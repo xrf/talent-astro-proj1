@@ -9,10 +9,11 @@ program VHone
   character(len=50) :: filename
   integer :: ncycend, nprin, nmovie, ndump, imax, n
   real :: endtime, tprin, tmovie, dxfac, xmin, xmax, ridt, xvel, dt3, dtx
-  real :: box_size        = 4.62e19
-  real :: ambient_density = 1e-24
+  real :: box_size        = 4.6e19
+  real :: ambient_density = 1.672e-24
   real :: blast_pressure
   real :: blast_energy    = 1e51
+  real :: cell_count = 1000
   namelist /hinput/ rstrt, prefix, ncycend, ndump, nprin, nmovie, endtime, tprin, tmovie
 
   ! begin by reading input file (namelist) for job control values
@@ -32,10 +33,10 @@ program VHone
   sweep  = 'x'   ! default is x-sweep (only option for 1D)
   ngeom  = 2     ! 2 = spherical geometry
   nleft  = 0     ! reflecting at xmin
-  nright = 0     ! reflecting at xmax
+  nright = 1     ! reflecting at xmax
 
   ! create a grid of imax zones, making room for 6 'ghost zones' on each end
-  imax = 100           ! total number of real zones on grid
+  imax = cell_count          ! total number of real zones on grid
   nmin = 7             ! first real zone
   nmax = imax + 6      ! last real zone
   xmin = 0.            ! x value at left edge of grid
@@ -48,14 +49,15 @@ program VHone
      dx0(n) = dxfac
   enddo
 
-  gam  = 1.4   ! We always need a ratio of specific heats, gamma
-  gamm = gam - 1.0
+  gam  = 5. / 3.   ! We always need a ratio of specific heats, gamma
+  gamm = gam - 1.
 
   ! initial conditions for Sedov blast (supernova)
   blast_pressure = blast_energy / (4. * pi * xa0(nmin + 1) ** 3 / 3.) * gamm
+  write (*, *) blast_pressure
   do n = nmin, nmax
      r(n) = ambient_density
-     p(n) = blast_pressure / 1e10
+     p(n) = 2.2e-12
      u(n) = 0.0
      v(n) = 0.0            ! note that we have to carry around the transverse
      w(n) = 0.0            ! velocities even though this is a 1D code

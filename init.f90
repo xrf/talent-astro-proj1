@@ -186,10 +186,11 @@ subroutine source
   if (time > shock_start_time) then
      do i = 1, imax
         do k = 1, kmax
-           zux(i, 1, k) = 0
-           zuy(i, 1, k) = shock_velocity
-           zuz(i, 1, k) = 0
-           zro(i, 1, k) = shock_density
+           ! zux(i, shock_ny, k) = 0
+           ! zuy(i, shock_ny, k) = shock_velocity
+           ! zuz(i, shock_ny, k) = 0
+           zpr(i, shock_ny, k) = shock_pressure
+           zro(i, shock_ny, k) = shock_density
         enddo
      enddo
   endif
