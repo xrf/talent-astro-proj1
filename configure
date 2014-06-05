@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+#
+# VH1 requires the NetCDF library:
+#
+#   - Apt:     `apt-get install libnetcdf-dev`
+#   - Pacman:  `pacman -S netcdf`
+#
+# ----------------------------------------------------------------------------
+import glob, os, shutil, subprocess, sys, tempfile
+
+DEV_NULL = open(os.devnull, "r+")
+
+class TmpFile:
+    def __init__(self, *args, **kwargs):
+        self.filename = write_tmp(*args, **kwargs)
+    def __enter__(self):
+        return self.filename
+    def __exit__(self, type, value, traceback):
+        os.remove(self.filename)
+
+def read_file(filename):
+    with open(filename) as f:
+        return f.read()
+
+def write_file(filename, s):
+    with open(filename, "w") as f:
+        f.write(s)
+
+def write_tmp(s, suffix=""):
+    fd, filename = tempfile.mkstemp(suffix=suffix)
+    with os.fdopen(fd, "w") as f:
+        f.write(s)
+    return filename
+
+def escape_apos(s):
+    return s.replace("'", '''"'"'"'"''')
+
+def find_command(name, ds):
+    for d in ds:
+        if subprocess.call(["sh", "-c", "command -v '{0}'".format(escape_apos(d))],
+                           stdout=DEV_NULL, stderr=DEV_NULL) == 0:
+            print("using {1} as {0}".format(name, d))
+            return d
+    raise Exception("can't find {0}; tried: {1}".format(name, ds))
+
+def find_dir(name, ds):
+    for d in ds:
+        if os.path.isfile(os.path.join(d, name)):
+            print("found {0} at {1}".format(name, d))
+            return d
+    raise Exception("can't find {0}; tried: {1}".format(name, ds))
+
+def find_lib(*args, **kwargs):
+    return find_dir(ds=["/usr/lib", "/usr/local/lib", "/opt/local/lib"],
+                    *args, **kwargs)
+
+def find_include(*args, **kwargs):
+    return find_dir(ds=["/usr/include", "/usr/local/include", "/opt/local/include"],
+                    *args, **kwargs)
+
+
+cc = find_command("C compiler", ["cc", "gcc", "clang", "icc"])
+fc = find_command("Fortran compiler", ["f90", "gfortran", "ifort"])
+try:
+    mpifc = find_command("MPI Fortran compiler", ["mpif90", "mpigfortran", "mpiifort"])
+except Exception as e:
+    print("** warning: {0}".format(e))
+    print("** warning: won't be able to compile parallel version")
+    mpifc = ""
+
+# warning: don't use doubles because VH1 doesn't really support them
+#          (you have been warned)
+use_double_real = False
+
+fflags = ["-O3", "-Wall"]
+if use_double_real:
+    fflags.append("-freal-4-real-8")
+
+lib_dirs = []
+include_dirs = []
+lnetcdf = []
+lib_dirs.append(find_lib("libnetcdff.so"))
+include_dirs.append(find_include("netcdf.mod"))
+fflags.extend("-I" + d for d in include_dirs)
+lnetcdf.extend("-L" + d for d in lib_dirs)
+lnetcdf.append("-lnetcdff")
+
+# check for -march=native -Wa,-q support
+march_native = ["-march=native", "-Wa,-q"]
+with TmpFile("int main(void){return 0;}", suffix=".c") as tmp_fn:
+    if subprocess.call([cc, "-O3"] + march_native + [tmp_fn]) == 0:
+        fflags.extend(march_native)
+        print("note: optional flag '-march=native -Wa,-q' is supported")
+    else:
+        print("note: optional flag '-march=native -Wa,-q' is NOT supported")
+
+s = read_file("Makefile.in")
+s = "\n".join((
+    ".POSIX:",
+    "CC=" + cc,
+    "FC=" + fc,
+    "MPIFC=" + mpifc if mpifc else "",
+    "FFLAGS=" + " ".join(fflags),
+    "LNETCDF=" + " ".join(lnetcdf),
+    s,
+))
+write_file("Makefile", s)

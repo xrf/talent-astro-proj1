@@ -1,7 +1,7 @@
 &hinput
  rstrt   = 'no'
  prefix  = 'NCState'
- ncycend = 1000
+ ncycend = 10000
  ndump   = 5000000
  nprin   = 10
  nmovie  = 10

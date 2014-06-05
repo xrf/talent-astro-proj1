@@ -1,22 +1,3 @@
-.POSIX:
-#
-# VH1 requires the NetCDF library:
-#
-#   - Apt:     `apt-get install libnetcdf-dev`
-#   - Pacman:  `pacman -S netcdf`
-#
-# ----------------------------------------------------------------------------
-
-# compilers
-FC=gfortran
-MPIFC=mpif90
-
-# compiler flags
-INCLUDE_DIRS=-I/opt/local/include
-LIB_DIRS=-L/opt/local/lib
-FFLAGS=$(INCLUDE_DIRS) -O3 -Wall -freal-4-real-8 -march=native -Wa,-q
-LNETCDF=$(LIB_DIRS) -lnetcdf -lnetcdff
-
 # number of processors
 NP=16
 # note: NP is not equal to P :)
@@ -35,26 +16,37 @@ VH1=$(VH1_PAR)/.VH1-cookie
 
 vh1-serial: $(VH1_DIR)/vh1-serial
 
+vh1-mpi: $(VH1_DIR)/vh1-mpi
+
+vh1-starter: $(VH1_DIR)/vh1-starter
+
 all: vh1-mpi vh1-serial vh1-starter
 
 clean:
 	@rm -fr dist
 
-vh1-mpi: $(VH1_DIR)/vh1-mpi
+run: run-serial
 
-vh1-starter: $(VH1_DIR)/vh1-starter
-
-run: $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat
-	@rm -fr $(VH1_DIR)/output/*
-	@echo "Running vh1-serial..." && cd $(VH1_DIR) && ./vh1-serial
+run-serial: $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat
+	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	mkdir -p runs/$$DATE/output && \
+	cp $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat runs/$$DATE && \
+	echo "Running vh1-serial in runs/$$DATE..." && \
+	cd runs/$$DATE && time ./vh1-serial
 
 run-mpi: $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat
-	@rm -fr $(VH1_DIR)/output/*
-	@echo "Running vh1-mpi..." && cd $(VH1_DIR) && mpirun -n $(NP) ./vh1-mpi
+	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	mkdir -p runs/$$DATE/output && \
+	cp $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat runs/$$DATE && \
+	echo "Running vh1-mpi in runs/$$DATE..." && \
+	cd runs/$$DATE && mpirun -n $(NP) ./vh1-mpi
 
-run-starter: $(VH1_DIR)/vh1-starter $(VH1_DIR)/indat
-	@rm -fr $(VH1_DIR)/output/*
-	@echo "Running vh1-starter..." && cd $(VH1_DIR) && ./vh1-starter
+run-starter: $(VH1_DIR)/vh1-starter $(VH1_DIR)/starter/indat
+	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	mkdir -p runs/$$DATE/output && \
+	cp $(VH1_DIR)/vh1-starter $(VH1_DIR)/starter/indat runs/$$DATE && \
+	echo "Running vh1-starter in runs/$$DATE..." && \
+	cd runs/$$DATE && time ./vh1-starter
 
 $(VH1_DIR)/vh1-serial: \
     $(VH1) \
