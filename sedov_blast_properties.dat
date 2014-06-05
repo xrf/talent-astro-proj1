@@ -1,0 +1,35 @@
+========================================================================
+Units for sedov1d
+distance:			parsec
+time: 				terasecond
+mass: 				1e28kg
+------------------------------------------------------------------------
+values at 10 parsec
+pressure:	2458.27		1e28kg/(parsec*terasecond²)
+velocity:	19.8215		parsec/terasecond
+density:	18.3106		1e28kg/parsec³
+========================================================================
+units for wind2d simulation
+distance: 			au
+time: 				year
+mass: 				1e12kg
+------------------------------------------------------------------------
+values of !!SNSHOCK!! at 10 parsec in wind2d units
+pressure:	118684.452	1e12kg/(au*year²)
+velocity:	129.019793	au/year
+density:	208.654222	1e12kg/au³
+========================================================================
+brianfields paper SNSHOCK properties at 10 parsec
+pressure:	2e-8		g/(cm*second²)
+velocity_low:	118 		km/s
+velocity_high:	12084		km/s
+density_low:	0.022		proton/cm³
+density_high:	52 		proton/cm³
+------------------------------------------------------------------------
+in wind 2d units
+pressure:	297950.961	1e12kg/(au*year²)
+velocity_low:	24.8915125	au/year
+velocity_high:	2549.05963	au/year
+density_low:	1.23150219	1e12kg/au³
+density_high:	2910.82337	1e12kg/au³
+========================================================================
