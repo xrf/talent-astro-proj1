@@ -79,7 +79,10 @@ if use_double_real:
 lib_dirs = []
 include_dirs = []
 lnetcdf = []
-lib_dirs.append(find_lib("libnetcdff.so"))
+try:
+    lib_dirs.append(find_lib("libnetcdff.so"))
+except:
+    lib_dirs.append(find_lib("libnetcdff.dylib"))
 include_dirs.append(find_include("netcdf.mod"))
 fflags.extend("-I" + d for d in include_dirs)
 lnetcdf.extend("-L" + d for d in lib_dirs)
