@@ -4,8 +4,8 @@ module zone
   integer :: nleftx,  nlefty,  nleftz       ! xyz lower boundary condition
   integer :: nrightx, nrighty, nrightz      ! xyz upper boundary condition
 
-  integer, parameter :: imax = 60
-  integer, parameter :: jmax = 60
+  integer, parameter :: imax = 200
+  integer, parameter :: jmax = 400
   integer, parameter :: kmax = 1
 
   real, dimension(imax, jmax, kmax) :: zro, zpr, zux, zuy, zuz, zfl
