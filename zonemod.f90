@@ -5,7 +5,7 @@ module zone
   integer :: nrightx, nrighty, nrightz      ! xyz upper boundary condition
 
   integer, parameter :: imax = 100
-  integer, parameter :: jmax = 300
+  integer, parameter :: jmax = 200
   integer, parameter :: kmax = 1
 
   real, dimension(imax, jmax, kmax) :: zro, zpr, zux, zuy, zuz, zfl
@@ -20,8 +20,9 @@ module zone
 
   real, parameter :: box_xmin = -10
   real, parameter :: box_xmax = 10
-  real, parameter :: box_ymin = -70
-  real, parameter :: box_ymax = 10
+
+  real, parameter :: box_ymin = -20
+  real, parameter :: box_ymax = 20
 
   real, parameter :: ambient_density = 6
   real, parameter :: ambient_pressure = 32.8
@@ -32,9 +33,9 @@ module zone
   real, parameter :: wind_pressure = 3e5
 !  real, parameter :: wind_speed = 1000.
 
-  real, parameter :: shock_density = 200
+  real, parameter :: shock_density = 20
   real, parameter :: shock_pressure = 1e5
-!  real, parameter :: shock_velocity = 100
+  real, parameter :: shock_velocity = 100
   real, parameter :: shock_start_time = 2
 
   real, parameter :: sun_origin_x = 0
