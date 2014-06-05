@@ -1,6 +1,7 @@
 # generic
 dist/
 doc/
+runs/
 Makefile
 .\#*
 *~
