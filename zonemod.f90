@@ -32,8 +32,8 @@ module zone
   real, parameter :: wind_pressure = 3e5
 !  real, parameter :: wind_speed = 1000.
 
-  real, parameter :: shock_density = 6
-  real, parameter :: shock_pressure = 3e5
+  real, parameter :: shock_density = 200
+  real, parameter :: shock_pressure = 1e5
 !  real, parameter :: shock_velocity = 100
   real, parameter :: shock_start_time = 2
 
