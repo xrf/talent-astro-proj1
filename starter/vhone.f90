@@ -7,14 +7,20 @@ program VHone
   character(len=4)  :: tmp1
   character(len=50) :: hstfile
   character(len=50) :: filename
-  integer :: ncycend, nprin, nmovie, ndump, imax, n
+  integer :: ncycend, nprin, nmovie, ndump, n
   real :: endtime, tprin, tmovie, dxfac, xmin, xmax, ridt, xvel, dt3, dtx
-  real :: box_size        = 4.6e19
-  real :: ambient_density = 1.672e-24
+
+  ! number of (real) zones
+  integer :: imax = 1000
+
+  ! units: parsec, 1e28 kg, terasecond
+  real :: box_size         = 14.9
+  real :: ambient_density  = 4.91
+  real :: ambient_pressure = .679
   real :: blast_pressure
-  real :: blast_energy    = 1e51
-  real :: cell_count = 1000
-  namelist /hinput/ rstrt, prefix, ncycend, ndump, nprin, nmovie, endtime, tprin, tmovie
+  real :: blast_energy     = 1.05e7
+  namelist /hinput/ rstrt, prefix, ncycend, ndump, nprin, nmovie, endtime, &
+                    tprin, tmovie
 
   ! begin by reading input file (namelist) for job control values
   open (unit=15, file='indat', status='old', form='formatted')
@@ -25,8 +31,8 @@ program VHone
   hstfile = 'output/' // trim(prefix) // '.hst'
   open (unit=8, file=hstfile, form='formatted')
   call date_and_time(todayis)
-  write (8,*) 'History File for VH-1 simulation run on ', todayis(5:6), ' / ', &
-              todayis(7:8), ' / ', todayis(1:4)
+  write (8,*) 'History File for VH-1 simulation run on ', todayis(5:6), &
+              ' / ', todayis(7:8), ' / ', todayis(1:4)
   write (8,*)
 
   ! set some flags for geometry and boundary conditions
@@ -36,7 +42,6 @@ program VHone
   nright = 1     ! reflecting at xmax
 
   ! create a grid of imax zones, making room for 6 'ghost zones' on each end
-  imax = cell_count          ! total number of real zones on grid
   nmin = 7             ! first real zone
   nmax = imax + 6      ! last real zone
   xmin = 0.            ! x value at left edge of grid
@@ -57,7 +62,7 @@ program VHone
   write (*, *) blast_pressure
   do n = nmin, nmax
      r(n) = ambient_density
-     p(n) = 2.2e-12
+     p(n) = ambient_pressure
      u(n) = 0.0
      v(n) = 0.0            ! note that we have to carry around the transverse
      w(n) = 0.0            ! velocities even though this is a 1D code
@@ -67,9 +72,9 @@ program VHone
 
   ! Write out initial data to a file
   nfile = 0
-  write (tmp1,"(i4)") nfile + 1000 ; nfile = nfile + 1
+  write (tmp1, "(i4)") nfile + 1000 ; nfile = nfile + 1
   filename = 'output/' // trim(prefix) // tmp1 // '.dat'
-  open (unit=3,file=filename,form='formatted')
+  open (unit=3, file=filename, form='formatted')
   do n = nmin, nmax
      write (3, 1003) xa0(n), r(n), p(n), u(n)
   enddo
@@ -84,9 +89,9 @@ program VHone
   ! compute initial time step based on Courant condition to ensure stability
   ridt = 0.
   do n = nmin, nmax
-     svel = sqrt(gam*p(n)/r(n))/dx0(n)
+     svel = sqrt(gam*p(n) / r(n)) / dx0(n)
      xvel = abs(u(n)) / dx0(n)
-     ridt = max(xvel,svel,ridt)
+     ridt = max(xvel, svel, ridt)
   enddo
   dt = courant / ridt
 
@@ -132,11 +137,11 @@ program VHone
      dt3 = 1.1 * dt           ! limiting constraint on rate of increase of dt
      dt  = min(dt3, dtx)      ! use smallest required timestep
 
-     ! data output
+     ! data output (position, density, pressure, velocity)
      if (ncycp >= nprin .or. timep >= tprin) then    ! print out a data file
-        write (tmp1,"(i4)") nfile + 1000; nfile = nfile + 1
+        write (tmp1, "(i4)") nfile + 1000; nfile = nfile + 1
         filename = 'output/' // trim(prefix) // tmp1 // '.dat'
-        write (8,6001) trim(prefix) // tmp1, time, ncycle
+        write (8, 6001) trim(prefix) // tmp1, time, ncycle
         open (unit=3, file=filename, form='formatted')
         do n = nmin, nmax
            write (3, 1003) xa0(n), r(n), p(n), u(n)
@@ -148,7 +153,8 @@ program VHone
   enddo
   close (8)
 
-1003 format(1pe13.5,4e13.5)
-6001 format('Wrote ',a18,' to disk at time =',1pe12.5,' (ncycle =', i7,')')
+1003 format(1pe13.5, 4e13.5)
+6001 format('Wrote ', a18, ' to disk at time =', 1pe12.5, &
+            ' (ncycle =', i7, ')')
 
 end program VHone

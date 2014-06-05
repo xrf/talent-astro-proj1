@@ -68,7 +68,9 @@ except Exception as e:
     print("** warning: won't be able to compile parallel version")
     mpifc = ""
 
-use_double_real = True
+# warning: don't use doubles because VH1 doesn't really support them
+#          (you have been warned)
+use_double_real = False
 
 fflags = ["-O3", "-Wall"]
 if use_double_real:
