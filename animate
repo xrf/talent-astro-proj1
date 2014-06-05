@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+import os, subprocess, sys
+import matplotlib.colors
+import matplotlib.pyplot as plt
+import netCDF4
+import utils
+
+# add correct axis labels
+# add legend
+
+def generate_nc_animation(in_fn, var_name, out_fn=None,
+                          x_name="x", y_name="y",
+                          time_name="time", time_scale=1,
+                          ticks_per_second=1000,
+                          time_min=float("-inf"),
+                          time_max=float("inf"),
+                          min_real_delay=1./24.,
+                          log_scale=False,
+                          vmin=None,
+                          vmax=None):
+    if out_fn is None:
+        out_fn, _ = os.path.splitext(in_fn)
+        out_fn += ".gif"
+
+    time_factor = float(time_scale) * ticks_per_second
+
+    # load data
+    nc_data = netCDF4.Dataset(in_fn)
+    xs = nc_data.variables[x_name]
+    ys = nc_data.variables[y_name]
+    ts = nc_data.variables[time_name]
+    fs = nc_data.variables[var_name]
+    num_digits = len(str(len(ts)))
+
+    # log scale
+    norm = None
+    if log_scale:
+        norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax)
+
+    # use temporary directory
+    work_dir = out_fn + ".tmp"
+    try:
+        os.mkdir(work_dir)
+    except:
+        pass
+    prefix = os.path.join(work_dir, "img")
+    cmd = ["convert"]
+
+    x_min = xs[0]
+    x_max = xs[-1]
+    y_min = ys[0]
+    y_max = ys[-1]
+    extent = (x_min, x_max, y_min, y_max)
+
+    # generate frames
+    t_prev = None
+    for i, (t, f) in enumerate(zip(ts, fs)):
+
+        # check if in range
+        if t < time_min or time_max <= t:
+            continue
+
+        # calculate time delay
+        real_delay = 0
+        if t_prev is not None:
+            real_delay = (t - t_prev) * float(time_scale)
+
+            # drop frames if delay is too small
+            if real_delay < min_real_delay:
+                print("time = {0:20}, real delay = {1:20} sec [dropped]"
+                      .format(t, real_delay))
+                continue
+
+            cmd.append("-delay")
+            cmd.append("{0}x{1}".format(
+                int(real_delay * ticks_per_second),
+                int(ticks_per_second),
+            ))
+        t_prev = t
+
+        # get filename
+        fn = prefix + "{{0:0{0}}}.png".format(num_digits).format(i)
+        cmd.append(fn)
+
+        # skip existing files
+        if os.path.isfile(fn):
+            print("time = {0:20}, real delay = {1:20} sec [skipped]"
+                  .format(t, real_delay))
+            continue
+
+        # save as image
+        print("time = {0:20}, real delay = {1:20} sec: plotting ..."
+              .format(t, real_delay))
+        plt.imshow(f, origin="lower", interpolation="none", extent=extent,
+                   cmap="afmhot", norm=norm)
+        plt.colorbar()
+
+        plt.savefig(fn, bbox_inches=0)
+        plt.clf()
+
+    # generate animation
+    cmd.append(out_fn)
+    if subprocess.call(cmd) != 0:
+        sys.stderr.write("failed to generate GIF.\n")
+
+# if len(sys.argv) != 3:
+#     sys.stderr.write("usage: {0} DATA_FILE VARIABLE\n".format(sys.argv[0]))
+#     sys.exit(1)
+
+generate_nc_animation(
+#    in_fn=sys.argv[1],
+#    var_name=sys.argv[2],
+    in_fn="runs/2014-06-05/18-33-42/output/NCState.nc",
+    var_name="Density",
+    time_scale=20,
+    log_scale=True,
+    vmin=1.,
+    vmax=1000.,
+)
