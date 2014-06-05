@@ -6,39 +6,29 @@
 #   - Pacman:  `pacman -S netcdf`
 #
 # ----------------------------------------------------------------------------
-import glob, os, shutil, subprocess, sys, tempfile
+import glob, os, shutil, subprocess, sys
+import utils
 
-DEV_NULL = open(os.devnull, "r+")
+common_lib_dirs = [
+    "/usr/lib",
+    "/usr/local/lib",
+    "/opt/local/lib"
+]
 
-class TmpFile:
-    def __init__(self, *args, **kwargs):
-        self.filename = write_tmp(*args, **kwargs)
-    def __enter__(self):
-        return self.filename
-    def __exit__(self, type, value, traceback):
-        os.remove(self.filename)
-
-def read_file(filename):
-    with open(filename) as f:
-        return f.read()
-
-def write_file(filename, s):
-    with open(filename, "w") as f:
-        f.write(s)
-
-def write_tmp(s, suffix=""):
-    fd, filename = tempfile.mkstemp(suffix=suffix)
-    with os.fdopen(fd, "w") as f:
-        f.write(s)
-    return filename
+common_include_dirs = [
+    "/usr/include",
+    "/usr/local/include",
+    "/opt/local/include",
+]
 
 def escape_apos(s):
     return s.replace("'", '''"'"'"'"''')
 
 def find_command(name, ds):
     for d in ds:
-        if subprocess.call(["sh", "-c", "command -v '{0}'".format(escape_apos(d))],
-                           stdout=DEV_NULL, stderr=DEV_NULL) == 0:
+        if subprocess.call(["sh", "-c",
+                            "command -v '{0}'".format(escape_apos(d))],
+                           stdout=utils.DEV_NULL, stderr=utils.DEV_NULL) == 0:
             print("using {1} as {0}".format(name, d))
             return d
     raise Exception("can't find {0}; tried: {1}".format(name, ds))
@@ -50,13 +40,14 @@ def find_dir(name, ds):
             return d
     raise Exception("can't find {0}; tried: {1}".format(name, ds))
 
-def find_lib(*args, **kwargs):
-    return find_dir(ds=["/usr/lib", "/usr/local/lib", "/opt/local/lib"],
-                    *args, **kwargs)
+def find_lib(name, *args, **kwargs):
+    try:
+        return find_dir("lib" + name + ".so", ds=common_lib_dirs, *args, **kwargs)
+    except:
+        return find_dir("lib" + name + ".dylib", ds=common_lib_dirs, *args, **kwargs)
 
 def find_include(*args, **kwargs):
-    return find_dir(ds=["/usr/include", "/usr/local/include", "/opt/local/include"],
-                    *args, **kwargs)
+    return find_dir(ds=common_include_dirs, *args, **kwargs)
 
 
 cc = find_command("C compiler", ["cc", "gcc", "clang", "icc"])
@@ -79,10 +70,7 @@ if use_double_real:
 lib_dirs = []
 include_dirs = []
 lnetcdf = []
-try:
-    lib_dirs.append(find_lib("libnetcdff.so"))
-except:
-    lib_dirs.append(find_lib("libnetcdff.dylib"))
+lib_dirs.append(find_lib("netcdff"))
 include_dirs.append(find_include("netcdf.mod"))
 fflags.extend("-I" + d for d in include_dirs)
 lnetcdf.extend("-L" + d for d in lib_dirs)
@@ -90,14 +78,15 @@ lnetcdf.append("-lnetcdff")
 
 # check for -march=native -Wa,-q support
 march_native = ["-march=native", "-Wa,-q"]
-with TmpFile("int main(void){return 0;}", suffix=".c") as tmp_fn:
-    if subprocess.call([cc, "-O3"] + march_native + [tmp_fn]) == 0:
+with utils.TmpFile("int main(void){return 0;}", suffix=".c") as tmp:
+    if subprocess.call([cc, "-O3"] + march_native + [tmp.filename],
+                       stdout=utils.DEV_NULL, stderr=utils.DEV_NULL) == 0:
         fflags.extend(march_native)
         print("note: optional flag '-march=native -Wa,-q' is supported")
     else:
         print("note: optional flag '-march=native -Wa,-q' is NOT supported")
 
-s = read_file("Makefile.in")
+s = utils.read_file("Makefile.in")
 s = "\n".join((
     ".POSIX:",
     "CC=" + cc,
@@ -107,4 +96,4 @@ s = "\n".join((
     "LNETCDF=" + " ".join(lnetcdf),
     s,
 ))
-write_file("Makefile", s)
+utils.write_file("Makefile", s)
