@@ -28,7 +28,7 @@ clean:
 run: run-serial
 
 run-serial: $(VH1_DIR)/vh1-serial indat
-	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	@DATE=`date +'%Y-%m-%d/%H-%M-%S'` && \
 	mkdir -p runs/$$DATE/output && \
 	cp $(VH1_DIR)/vh1-serial \
 	   $(VH1_DIR)/src/Serial/init.f90 \
@@ -41,14 +41,14 @@ run-serial: $(VH1_DIR)/vh1-serial indat
 	cd runs/$$DATE && time ./vh1-serial
 
 run-mpi: $(VH1_DIR)/vh1-mpi indat
-	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	@DATE=`date +'%Y-%m-%d/%H-%M-%S'` && \
 	mkdir -p runs/$$DATE/output && \
 	cp $(VH1_DIR)/vh1-mpi indat runs/$$DATE && \
 	echo "Running vh1-mpi in runs/$$DATE..." && \
 	cd runs/$$DATE && mpirun -n $(NP) ./vh1-mpi
 
 run-starter: $(VH1_DIR)/vh1-starter starter/indat
-	@DATE=`date +'%Y%m%d%H%M%S'` && \
+	@DATE=`date +'%Y-%m-%d/%H-%M-%S'` && \
 	mkdir -p runs/$$DATE/output && \
 	cp $(VH1_DIR)/vh1-starter \
 	   $(VH1_DIR)/src/Starter/vhone.f90 \
