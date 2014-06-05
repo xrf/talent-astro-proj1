@@ -1,4 +1,4 @@
-import os, tempfile
+import os, shutil, tempfile
 
 '''A file object to `/dev/null`.'''
 DEV_NULL = open(os.devnull, "r+")
