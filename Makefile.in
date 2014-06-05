@@ -27,24 +27,24 @@ clean:
 
 run: run-serial
 
-run-serial: $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat
+run-serial: $(VH1_DIR)/vh1-serial indat
 	@DATE=`date +'%Y%m%d%H%M%S'` && \
 	mkdir -p runs/$$DATE/output && \
-	cp $(VH1_DIR)/vh1-serial $(VH1_DIR)/indat runs/$$DATE && \
+	cp $(VH1_DIR)/vh1-serial indat runs/$$DATE && \
 	echo "Running vh1-serial in runs/$$DATE..." && \
 	cd runs/$$DATE && time ./vh1-serial
 
-run-mpi: $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat
+run-mpi: $(VH1_DIR)/vh1-mpi indat
 	@DATE=`date +'%Y%m%d%H%M%S'` && \
 	mkdir -p runs/$$DATE/output && \
-	cp $(VH1_DIR)/vh1-mpi $(VH1_DIR)/indat runs/$$DATE && \
+	cp $(VH1_DIR)/vh1-mpi indat runs/$$DATE && \
 	echo "Running vh1-mpi in runs/$$DATE..." && \
 	cd runs/$$DATE && mpirun -n $(NP) ./vh1-mpi
 
-run-starter: $(VH1_DIR)/vh1-starter $(VH1_DIR)/starter/indat
+run-starter: $(VH1_DIR)/vh1-starter starter/indat
 	@DATE=`date +'%Y%m%d%H%M%S'` && \
 	mkdir -p runs/$$DATE/output && \
-	cp $(VH1_DIR)/vh1-starter $(VH1_DIR)/starter/indat runs/$$DATE && \
+	cp $(VH1_DIR)/vh1-starter starter/indat runs/$$DATE && \
 	echo "Running vh1-starter in runs/$$DATE..." && \
 	cd runs/$$DATE && time ./vh1-starter
 
@@ -177,9 +177,6 @@ $(VH1_DIR)/src/Serial/zonemod.f90: zonemod.f90 $(VH1)
 
 $(VH1_DIR)/src/Starter/vhone.f90: starter/vhone.f90 $(VH1)
 	@cp starter/vhone.f90 $@
-
-$(VH1_DIR)/indat: indat $(VH1)
-	@cp indat $@
 
 $(VH1):
 	@mkdir -p $(VH1_PAR)
