@@ -2,6 +2,7 @@
 dist/
 doc/
 runs/
+configure_overrides.py
 Makefile
 .\#*
 *~

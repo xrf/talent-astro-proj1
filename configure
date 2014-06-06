@@ -9,17 +9,34 @@
 import glob, os, shutil, subprocess, sys
 import utils
 
-common_lib_dirs = [
-    "/usr/lib",
-    "/usr/local/lib",
-    "/opt/local/lib"
-]
+try:
+    from configure_overrides import *
+except ImportError:
+    includes = dict()
+    libs = dict()
 
 common_include_dirs = [
     "/usr/include",
     "/usr/local/include",
     "/opt/local/include",
 ]
+
+common_lib_dirs = [
+    "/usr/lib",
+    "/usr/local/lib",
+    "/opt/local/lib"
+]
+
+common_lib_extensions = [".so", ".dylib", ".dll.a"]
+
+def msum(actions):
+    exception = Exception("no actions")
+    for action in actions:
+        try:
+            return action()
+        except Exception as e:
+            exception = e
+    raise exception
 
 def escape_apos(s):
     return s.replace("'", '''"'"'"'"''')
@@ -42,13 +59,23 @@ def find_dir(name, ds):
 
 def find_lib(name, *args, **kwargs):
     try:
-        return find_dir("lib" + name + ".so", ds=common_lib_dirs, *args, **kwargs)
-    except:
-        return find_dir("lib" + name + ".dylib", ds=common_lib_dirs, *args, **kwargs)
+        d = libs[name]
+        print("override: using {0} at {1}".format(name, d))
+        return d
+    except KeyError:
+        return msum(map(
+            lambda ext: lambda:
+            find_dir("lib" + name + ext, ds=common_lib_dirs, *args, **kwargs),
+            common_lib_extensions
+        ))
 
-def find_include(*args, **kwargs):
-    return find_dir(ds=common_include_dirs, *args, **kwargs)
-
+def find_include(name, *args, **kwargs):
+    try:
+        d = includes[name]
+        print("override: using {0} at {1}".format(name, d))
+        return d
+    except KeyError:
+        return find_dir(name, ds=common_include_dirs, *args, **kwargs)
 
 cc = find_command("C compiler", ["cc", "gcc", "clang", "icc"])
 fc = find_command("Fortran compiler", ["f90", "gfortran", "ifort"])
@@ -67,14 +94,15 @@ fflags = ["-O3", "-Wall"]
 if use_double_real:
     fflags.append("-freal-4-real-8")
 
-lib_dirs = []
-include_dirs = []
-lnetcdf = []
-lib_dirs.append(find_lib("netcdff"))
-include_dirs.append(find_include("netcdf.mod"))
+include_dirs = set()
+lib_dirs = set()
+include_dirs.add(find_include("netcdf.mod"))
+lib_dirs.add(find_lib("netcdff"))
 fflags.extend("-I" + d for d in include_dirs)
+lnetcdf = []
 lnetcdf.extend("-L" + d for d in lib_dirs)
 lnetcdf.append("-lnetcdff")
+lnetcdf.append("-lnetcdf")
 
 # check for -march=native -Wa,-q support
 march_native = ["-march=native", "-Wa,-q"]
