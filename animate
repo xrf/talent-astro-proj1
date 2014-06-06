@@ -8,7 +8,8 @@ import utils
 # add correct axis labels
 # add legend
 
-def generate_nc_animation(in_fn, var_name, out_fn=None,
+def generate_nc_animation(in_fn, var_name,
+                          out_fn=None, out_ext=".gif",
                           x_name="x", y_name="y",
                           time_name="time", time_scale=1,
                           ticks_per_second=1000,
@@ -20,7 +21,7 @@ def generate_nc_animation(in_fn, var_name, out_fn=None,
                           vmax=None):
     if out_fn is None:
         out_fn, _ = os.path.splitext(in_fn)
-        out_fn += ".gif"
+        out_fn += out_ext
 
     time_factor = float(time_scale) * ticks_per_second
 
@@ -38,7 +39,7 @@ def generate_nc_animation(in_fn, var_name, out_fn=None,
         norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax)
 
     # use temporary directory
-    work_dir = out_fn + ".tmp"
+    work_dir = in_fn + ".tmp"
     try:
         os.mkdir(work_dir)
     except:
@@ -101,17 +102,18 @@ def generate_nc_animation(in_fn, var_name, out_fn=None,
     # generate animation
     cmd.append(out_fn)
     if subprocess.call(cmd) != 0:
-        sys.stderr.write("failed to generate GIF.\n")
+        sys.stderr.write("failed to generate animation.\n")
 
-# if len(sys.argv) != 3:
-#     sys.stderr.write("usage: {0} DATA_FILE VARIABLE\n".format(sys.argv[0]))
-#     sys.exit(1)
+if len(sys.argv) != 3:
+    sys.stderr.write("Usage: {0} DATA_FILE VARIABLE\n".format(sys.argv[0]))
+    sys.exit(1)
 
 generate_nc_animation(
-#    in_fn=sys.argv[1],
-#    var_name=sys.argv[2],
-    in_fn="runs/2014-06-05/18-33-42/output/NCState.nc",
-    var_name="Density",
+    in_fn=sys.argv[1],
+    var_name=sys.argv[2],
+#    in_fn="runs/2014-06-05/18-33-42/output/NCState.nc",
+#    var_name="Density",
+    out_ext=".mpg",
     time_scale=20,
     log_scale=True,
     vmin=1.,
