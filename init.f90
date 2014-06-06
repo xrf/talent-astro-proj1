@@ -110,7 +110,7 @@ subroutine init
      enddo
   enddo
 
-  call source
+  call source(.false.)
 
   ! --------------------------------------------------------------------------
   ! Compute Courant-limited timestep
@@ -159,10 +159,11 @@ end subroutine init
 
 ! ----------------------------------------------------------------------------
 
-subroutine source
+subroutine source(shock_init)
   use global
   use zone
   implicit none
+  logical :: shock_init
   integer :: i, j, k
   real    :: r
 
@@ -193,6 +194,23 @@ subroutine source
            zro(i, shock_ny, k) = shock_density
         enddo
      enddo
+
+     if (.not. shock_init) then
+        do i = 1, imax
+           do k = 1, kmax
+              ! add some smoothing to reduce stiffness
+              do j = 1, shock_smoothing
+                 zuy(i, shock_ny + j, k) = shock_velocity &
+                      * (shock_smoothing + 1 - j) / (shock_smoothing + 1) &
+                      + zuy(i, shock_ny + j, k) * j / (shock_smoothing + 1)
+                 zro(i, shock_ny + j, k) = shock_density &
+                      * (shock_smoothing + 1 - j) / (shock_smoothing + 1) &
+                      + zro(i, shock_ny + j, k) * j / (shock_smoothing + 1)
+              enddo
+           enddo
+        enddo
+        shock_init = .true.
+     endif
   endif
 
 end subroutine source

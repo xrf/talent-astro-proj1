@@ -35,7 +35,7 @@ module zone
 
   real, parameter :: shock_density = 2.11
 !  real, parameter :: shock_pressure = 1e5
-  real, parameter :: shock_velocity = 410
+  real, parameter :: shock_velocity = 400
   real, parameter :: shock_start_time = 1.5
 
   real, parameter :: sun_origin_x = 0
@@ -43,5 +43,6 @@ module zone
   real, parameter :: sun_origin_z = 0
 
   integer, parameter :: shock_ny = 1
+  integer, parameter :: shock_smoothing = 0
 
 end module zone
