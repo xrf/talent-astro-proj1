@@ -99,6 +99,8 @@ def generate_nc_animation(in_fn, var_name,
         plt.savefig(fn, bbox_inches=0)
         plt.clf()
 
+    nc_data.close()
+
     # generate animation
     cmd.append(out_fn)
     if subprocess.call(cmd) != 0:
