@@ -1,26 +1,26 @@
 Project 1
 =========
 
-This is the first project for the [TALENT course][1]:
+This is [our first project][3] for the [TALENT course][1]:
 [nuclear theory for astrophysics (2014)][2].
 
 [1]: http://nucleartalent.org
 [2]: https://groups.nscl.msu.edu/jina/talent/wiki/Course_7
+[3]: https://wikihost.nscl.msu.edu/talent/doku.php?id=project1-group9
 
 Roles
 -----
 
-- **Analysis:**     Alexander D.
-- **Code:**         Fei Y.
-- **Parameter:**    Heiko M.
+- **Analysis:**     Alexander Dombos
+- **Code:**         Fei Yuan
+- **Parameter:**    Heiko Möller
 
-Topic
+Goals
 -----
 
-Simulate the effects of a near-Earth supernova explosion at 10 parsec (the
-"kill radius") and the resulting collision of the blast with solar wind.  Will
-the supernova reach 1 AU?  How does the answer depend on the:
+  * Perform a simulation of a supernova explosion near the Solar system (at,
+    say, 10 parsec) using the VH1 hydrodynamics solver.
 
-- supernova explosion energy,
-- distance, and
-- interstellar density?
+  * Explore the effects of the explosion (in particular, near the orbit of the
+    Earth) and how they vary depending on the energy of the supernova
+    (relative to the force of the Solar wind), proximity, and density.
